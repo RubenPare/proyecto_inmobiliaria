@@ -1,0 +1,320 @@
+from fastapi import FastAPI, Request, Depends, Form
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+
+from database import Base, engine, get_db
+from models import Propiedad
+class PropiedadCreate(BaseModel):
+    tipo: str
+    titulo: str
+    descripcion: str | None = None
+    precio: float
+    ubicacion: str
+    imagen_url: str | None = None
+
+# ============================================================
+
+# APLICACIÓN
+
+# ============================================================
+
+app = FastAPI(title="Gustavo Behrens Propiedades")
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="gustavo-behrens-clave-temporal"
+)
+# ============================================================
+
+# CREAR TABLAS
+
+# ============================================================
+
+Base.metadata.create_all(bind=engine)
+
+# ============================================================
+
+# ARCHIVOS ESTÁTICOS
+
+# ============================================================
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# ============================================================
+
+# PLANTILLAS
+
+# ============================================================
+
+templates = Jinja2Templates(directory="templates")
+
+# ============================================================
+
+# PÁGINA PRINCIPAL
+
+# ============================================================
+
+@app.get("/")
+def home(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Página principal."""
+
+    propiedades = db.query(Propiedad).filter(Propiedad.activo == 1).all()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "propiedades": propiedades
+        }
+    )
+# ============================================================
+
+# DETALLE DE PROPIEDAD
+
+# ============================================================
+
+@app.get("/propiedad/{propiedad_id}")
+def detalle_propiedad(
+    request: Request,
+    propiedad_id: int,
+    db: Session = Depends(get_db)
+):
+    propiedad = db.query(Propiedad).filter(
+        Propiedad.id == propiedad_id
+    ).first()
+
+    print("PROPIEDAD ENCONTRADA:", propiedad)
+    print("ARCHIVO HTML USADO:", templates.get_template("propiedad.html").filename)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="propiedad.html",
+        context={
+            "propiedad": propiedad
+        }
+    )
+# ============================================================
+
+# ADMINISTRACIÓN
+
+# ============================================================
+# =========================================================
+# LOGIN ADMINISTRATIVO
+# =========================================================
+
+ADMIN_USUARIO = "admin"
+ADMIN_PASSWORD = "1234"
+
+
+@app.get("/admin/login")
+def admin_login(request: Request):
+
+    return templates.TemplateResponse(
+        request=request,
+        name="admin/login.html",
+        context={"request": request}
+    )
+
+
+@app.post("/admin/login")
+def admin_login_post(
+    request: Request,
+    usuario: str = Form(...),
+    password: str = Form(...)
+):
+
+    if usuario == ADMIN_USUARIO and password == ADMIN_PASSWORD:
+
+        request.session["admin"] = True
+
+        return RedirectResponse(
+            url="/admin/propiedades",
+            status_code=303
+        )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="admin/login.html",
+        context={
+            "request": request,
+            "error": "Usuario o contraseña incorrectos."
+        }
+    )
+
+
+@app.get("/admin/logout")
+def admin_logout(request: Request):
+
+    request.session.clear()
+
+    return RedirectResponse(
+        url="/admin/login",
+        status_code=303
+    )
+@app.get("/admin/propiedades")
+def admin_propiedades(request: Request):
+
+    if not request.session.get("admin"):
+        return RedirectResponse(
+            url="/admin/login",
+            status_code=303
+        )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="admin/propiedades.html",
+        context={"request": request}
+    )
+# ============================================================
+
+# PRUEBA DE BASE DE DATOS
+
+# ============================================================
+
+@app.get("/api/estado-db")
+def estado_db(db: Session = Depends(get_db)):
+    """Comprueba que la tabla propiedades exista y sea accesible."""
+
+
+    cantidad = db.query(Propiedad).count()
+    return {
+    "base_de_datos": "conectada",
+    "tabla": "propiedades",
+    "cantidad_propiedades": cantidad
+}
+# ============================================================
+# API DE PROPIEDADES
+# ============================================================
+
+@app.get("/api/propiedades")
+def listar_propiedades(db: Session = Depends(get_db)):
+    """Lista las propiedades activas."""
+
+    propiedades = db.query(Propiedad).filter(Propiedad.activo == 1).all()
+
+    return propiedades
+
+@app.get("/api/propiedades/admin")
+def listar_propiedades_admin(db: Session = Depends(get_db)):
+    """Lista todas las propiedades para administración."""
+
+    propiedades = db.query(Propiedad).all()
+
+    return propiedades
+
+@app.post("/api/propiedades")
+def crear_propiedad(
+    propiedad: PropiedadCreate,
+    db: Session = Depends(get_db)
+):
+    """Crea una nueva propiedad."""
+
+    nueva_propiedad = Propiedad(
+        tipo=propiedad.tipo,
+        titulo=propiedad.titulo,
+        descripcion=propiedad.descripcion,
+        precio=propiedad.precio,
+        ubicacion=propiedad.ubicacion,
+        imagen_url=propiedad.imagen_url
+    )
+
+    db.add(nueva_propiedad)
+    db.commit()
+    db.refresh(nueva_propiedad)
+
+    return nueva_propiedad
+# =========================================================
+# EDITAR PROPIEDAD
+# =========================================================
+
+@app.put("/api/propiedades/{propiedad_id}")
+def editar_propiedad(
+    propiedad_id: int,
+    propiedad: PropiedadCreate,
+    db: Session = Depends(get_db)
+):
+    existente = db.query(Propiedad).filter(
+        Propiedad.id == propiedad_id
+    ).first()
+
+    if not existente:
+        return {"error": "Propiedad no encontrada"}
+
+    existente.tipo = propiedad.tipo
+    existente.titulo = propiedad.titulo
+    existente.descripcion = propiedad.descripcion
+    existente.precio = propiedad.precio
+    existente.ubicacion = propiedad.ubicacion
+    existente.imagen_url = propiedad.imagen_url
+
+    db.commit()
+    db.refresh(existente)
+
+    return existente
+
+
+# =========================================================
+# DESACTIVAR / ACTIVAR PROPIEDAD
+# =========================================================
+
+@app.put("/api/propiedades/{propiedad_id}/estado")
+def cambiar_estado_propiedad(
+    propiedad_id: int,
+    db: Session = Depends(get_db)
+):
+    propiedad = db.query(Propiedad).filter(
+        Propiedad.id == propiedad_id
+    ).first()
+
+    if not propiedad:
+        return {"error": "Propiedad no encontrada"}
+
+    propiedad.activo = not propiedad.activo
+
+    db.commit()
+    db.refresh(propiedad)
+
+    return propiedad
+
+
+# =========================================================
+# ELIMINAR PROPIEDAD DEFINITIVAMENTE
+# =========================================================
+
+@app.delete("/api/propiedades/{propiedad_id}")
+def eliminar_propiedad(
+    propiedad_id: int,
+    db: Session = Depends(get_db)
+):
+    propiedad = db.query(Propiedad).filter(
+        Propiedad.id == propiedad_id
+    ).first()
+
+    if not propiedad:
+        return {"error": "Propiedad no encontrada"}
+
+    db.delete(propiedad)
+    db.commit()
+
+    return {
+        "mensaje": "Propiedad eliminada correctamente",
+        "id": propiedad_id
+    }
+
+
+
+# ============================================================
+
+# DESARROLLO
+
+# ============================================================
+
+# Ejecutar con:
+
+# uvicorn main:app --reload

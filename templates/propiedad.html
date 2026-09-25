@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ propiedad.titulo }} — Gustavo Behrens Propiedades</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', path='css/style.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', path='css/propiedad.css') }}">
+
+</head>
+
+<body>
+
+    <header>
+
+        <div class="logo">
+
+            <i class="fa-solid fa-building-columns"></i>
+
+            <span>
+                GUSTAVO BEHRENS<br>
+                <small>PROPIEDADES</small>
+            </span>
+
+        </div>
+
+        <nav>
+
+            <a href="/">Inicio</a>
+
+            <a href="/">Propiedades</a>
+
+        </nav>
+
+    </header>
+
+
+    <main class="detalle-propiedad">
+
+        {% if propiedad %}
+
+            <div class="detalle-imagen">
+
+                <img
+                    src="{{ propiedad.imagen_url or 'https://via.placeholder.com/800x500' }}"
+                    alt="{{ propiedad.tipo }}"
+                >
+
+            </div>
+
+
+            <div class="detalle-info">
+
+                <span class="detalle-tipo">
+                    {{ propiedad.tipo }}
+                </span>
+
+                <h1>
+                    {{ propiedad.titulo }}
+                </h1>
+
+                <div class="detalle-precio">
+
+                    ${{ "{:,.0f}".format(propiedad.precio).replace(",", ".") }}
+
+                </div>
+
+                <p class="detalle-ubicacion">
+
+                    <i class="fa-solid fa-location-dot"></i>
+
+                    {{ propiedad.ubicacion }}
+
+                </p>
+
+
+                {% if propiedad.descripcion %}
+
+                    <div class="detalle-descripcion">
+
+                        <h2>Descripción</h2>
+
+                        <p>
+                            {{ propiedad.descripcion }}
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+
+                <div class="detalle-contacto">
+
+                    <h2>¿Te interesa esta propiedad?</h2>
+
+                    <a
+                        href="https://wa.me/5490000000000"
+                        target="_blank"
+                        class="btn-whatsapp"
+                    >
+
+                        <i class="fa-brands fa-whatsapp"></i>
+
+                        Consultar por WhatsApp
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="propiedad-no-encontrada">
+
+                <h1>Propiedad no encontrada</h1>
+
+                <p>
+                    La propiedad que estás buscando no existe.
+                </p>
+
+                <a href="/">
+                    Volver al inicio
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            Gustavo Behrens Propiedades — Inmobiliaria
+        </p>
+
+    </footer>
+
+</body>
+
+</html>

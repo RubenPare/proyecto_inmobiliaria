@@ -1,0 +1,232 @@
+/* =========================================================
+   FICHA DE PROPIEDAD
+   Gustavo Behrens Propiedades
+   ========================================================= */
+
+.detalle-propiedad {
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 0 25px;
+
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 45px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   IMAGEN
+   ========================================================= */
+
+.detalle-imagen {
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #eeeeee;
+}
+
+.detalle-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+
+/* =========================================================
+   INFORMACIÓN
+   ========================================================= */
+
+.detalle-info {
+    padding: 10px 0;
+}
+
+.detalle-tipo {
+    display: inline-block;
+
+    background: #222;
+    color: white;
+
+    padding: 7px 14px;
+    border-radius: 20px;
+
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+
+.detalle-info h1 {
+    margin: 18px 0 15px;
+
+    font-size: 38px;
+    line-height: 1.15;
+
+    color: #222;
+}
+
+
+.detalle-precio {
+    font-size: 32px;
+    font-weight: bold;
+    color: #111;
+
+    margin-bottom: 20px;
+}
+
+
+.detalle-ubicacion {
+    font-size: 17px;
+    color: #666;
+
+    margin-bottom: 30px;
+}
+
+.detalle-ubicacion i {
+    margin-right: 8px;
+}
+
+
+/* =========================================================
+   DESCRIPCIÓN
+   ========================================================= */
+
+.detalle-descripcion {
+    border-top: 1px solid #dddddd;
+    padding-top: 25px;
+    margin-top: 10px;
+}
+
+.detalle-descripcion h2 {
+    font-size: 21px;
+    margin-bottom: 12px;
+    color: #222;
+}
+
+.detalle-descripcion p {
+    color: #555;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   CONTACTO
+   ========================================================= */
+
+.detalle-contacto {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 1px solid #dddddd;
+}
+
+.detalle-contacto h2 {
+    font-size: 20px;
+    margin-bottom: 18px;
+    color: #222;
+}
+
+
+.btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    background: #25D366;
+    color: white;
+
+    padding: 14px 22px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+    font-weight: bold;
+
+    transition: 0.2s;
+}
+
+.btn-whatsapp:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+
+/* =========================================================
+   PROPIEDAD NO ENCONTRADA
+   ========================================================= */
+
+.propiedad-no-encontrada {
+    max-width: 700px;
+    margin: 100px auto;
+    padding: 40px;
+    text-align: center;
+}
+
+.propiedad-no-encontrada h1 {
+    margin-bottom: 15px;
+}
+
+.propiedad-no-encontrada p {
+    margin-bottom: 25px;
+}
+
+.propiedad-no-encontrada a {
+    color: #222;
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .detalle-propiedad {
+        grid-template-columns: 1fr;
+        gap: 30px;
+
+        margin-top: 30px;
+    }
+
+    .detalle-imagen {
+        height: 400px;
+    }
+
+    .detalle-info h1 {
+        font-size: 30px;
+    }
+
+    .detalle-precio {
+        font-size: 27px;
+    }
+}
+
+
+@media (max-width: 500px) {
+
+    .detalle-propiedad {
+        padding: 0 15px;
+    }
+
+    .detalle-imagen {
+        height: 280px;
+        border-radius: 10px;
+    }
+
+    .detalle-info h1 {
+        font-size: 27px;
+    }
+
+    .detalle-precio {
+        font-size: 25px;
+    }
+
+    .btn-whatsapp {
+        width: 100%;
+    }
+}

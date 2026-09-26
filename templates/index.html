@@ -12,9 +12,8 @@
     <!-- HEADER -->
     <header>
         <div class="logo">
-            <i class="fa-solid fa-building-columns"></i>
-            <span>GUSTAVO BEHRENS<br><small>PROPIEDADES</small></span>
-        </div>
+    <img src="/static/img/logo.png" alt="Gustavo Behrens Propiedades">
+</div>
         <nav>
             <a href="#propiedades">Propiedades</a>
             <a href="#nosotros">Nosotros</a>
@@ -26,9 +25,41 @@
     <section class="hero">
         <h1>Encontrá tu propiedad<br>Encontrá tu oportunidad</h1>
         <form class="buscador" id="form-buscar">
-            <input type="text" id="input-buscar" placeholder="Ubicación, tipo de propiedad...">
-            <button type="submit" id="btn-buscar">Buscar</button>
-        </form>
+
+    <input
+        type="text"
+        id="input-buscar"
+        placeholder="Ubicación, título o descripción..."
+    >
+
+    <select id="filtro-tipo">
+        <option value="">Todos los tipos</option>
+        <option value="Casa">Casa</option>
+        <option value="Departamento">Departamento</option>
+        <option value="Terreno">Terreno</option>
+        <option value="Campo">Campo</option>
+        <option value="Local">Local</option>
+    </select>
+
+    <input
+        type="number"
+        id="precio-desde"
+        placeholder="Precio desde"
+        min="0"
+    >
+
+    <input
+        type="number"
+        id="precio-hasta"
+        placeholder="Precio hasta"
+        min="0"
+    >
+
+    <button type="submit" id="btn-buscar">
+        Buscar
+    </button>
+
+</form>
     </section>
 
     <!-- PROPIEDADES DESTACADAS -->

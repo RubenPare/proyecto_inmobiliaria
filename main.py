@@ -193,12 +193,49 @@ def estado_db(db: Session = Depends(get_db)):
 # ============================================================
 
 @app.get("/api/propiedades")
-def listar_propiedades(db: Session = Depends(get_db)):
-    """Lista las propiedades activas."""
+def listar_propiedades(
+    buscar: str = "",
+    tipo: str = "",
+    precio_desde: float | None = None,
+    precio_hasta: float | None = None,
+    db: Session = Depends(get_db)
+):
+    """Lista propiedades activas con filtros."""
 
-    propiedades = db.query(Propiedad).filter(Propiedad.activo == 1).all()
+    consulta = db.query(Propiedad).filter(
+        Propiedad.activo == 1
+    )
 
-    return propiedades
+    # Búsqueda por texto
+    if buscar.strip():
+        termino = f"%{buscar.strip()}%"
+
+        consulta = consulta.filter(
+            (Propiedad.titulo.ilike(termino)) |
+            (Propiedad.tipo.ilike(termino)) |
+            (Propiedad.ubicacion.ilike(termino)) |
+            (Propiedad.descripcion.ilike(termino))
+        )
+
+    # Filtro por tipo
+    if tipo.strip():
+        consulta = consulta.filter(
+            Propiedad.tipo.ilike(tipo.strip())
+        )
+
+    # Filtro por precio mínimo
+    if precio_desde is not None:
+        consulta = consulta.filter(
+            Propiedad.precio >= precio_desde
+        )
+
+    # Filtro por precio máximo
+    if precio_hasta is not None:
+        consulta = consulta.filter(
+            Propiedad.precio <= precio_hasta
+        )
+
+    return consulta.all()
 
 @app.get("/api/propiedades/admin")
 def listar_propiedades_admin(db: Session = Depends(get_db)):

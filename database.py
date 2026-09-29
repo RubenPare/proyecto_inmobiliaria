@@ -8,28 +8,20 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 # CONEXIÓN A MYSQL
 # ============================================================
 
-import os
-from dotenv import load_dotenv
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-
 load_dotenv()
-
-# ============================================================
-# CONEXIÓN A MYSQL
-# ============================================================
 
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    echo=False
-)
+connect_args = {}
+
+# Aiven requiere SSL
+if SQLALCHEMY_DATABASE_URL and "aivencloud.com" in SQLALCHEMY_DATABASE_URL:
+    connect_args["ssl"] = {"check_hostname": False}
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    echo=False
+    echo=False,
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(
@@ -48,6 +40,5 @@ def get_db():
 
     try:
         yield db
-
     finally:
         db.close()

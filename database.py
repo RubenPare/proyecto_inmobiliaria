@@ -1,3 +1,6 @@
+import os
+from dotenv import load_dotenv
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -5,8 +8,23 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 # CONEXIÓN A MYSQL
 # ============================================================
 
-SQLALCHEMY_DATABASE_URL = (
-    "mysql+pymysql://root:19741026@localhost/inmobiliaria"
+import os
+from dotenv import load_dotenv
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+load_dotenv()
+
+# ============================================================
+# CONEXIÓN A MYSQL
+# ============================================================
+
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    echo=False
 )
 
 engine = create_engine(

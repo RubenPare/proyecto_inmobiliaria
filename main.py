@@ -5,6 +5,10 @@ from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from database import Base, engine, get_db
 from models import Propiedad
@@ -109,7 +113,24 @@ def detalle_propiedad(
 # =========================================================
 
 ADMIN_USUARIO = "admin"
-ADMIN_PASSWORD = "1234"
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+@app.get("/prueba-admin")
+def prueba_admin():
+    return {
+        "usuario_configurado": ADMIN_USUARIO,
+        "password_configurada": bool(ADMIN_PASSWORD),
+        "longitud_password": len(ADMIN_PASSWORD) if ADMIN_PASSWORD else 0
+    }
+
+
+def verificar_admin(request: Request):
+    if not request.session.get("admin"):
+        return RedirectResponse(
+            url="/admin/login",
+            status_code=303
+        )
+
+    return None
 
 
 @app.get("/admin/login")
@@ -121,16 +142,16 @@ def admin_login(request: Request):
         context={"request": request}
     )
 
-
 @app.post("/admin/login")
 def admin_login_post(
     request: Request,
     usuario: str = Form(...),
     password: str = Form(...)
 ):
+    print("USUARIO RECIBIDO:", usuario)
+    print("LONGITUD PASSWORD RECIBIDA:", len(password))
 
     if usuario == ADMIN_USUARIO and password == ADMIN_PASSWORD:
-
         request.session["admin"] = True
 
         return RedirectResponse(
@@ -146,7 +167,6 @@ def admin_login_post(
             "error": "Usuario o contraseña incorrectos."
         }
     )
-
 
 @app.get("/admin/logout")
 def admin_logout(request: Request):
@@ -247,9 +267,15 @@ def listar_propiedades_admin(db: Session = Depends(get_db)):
 
 @app.post("/api/propiedades")
 def crear_propiedad(
+    request: Request,
     propiedad: PropiedadCreate,
     db: Session = Depends(get_db)
 ):
+    acceso = verificar_admin(request)
+
+    if acceso:
+        return acceso
+
     """Crea una nueva propiedad."""
 
     nueva_propiedad = Propiedad(
@@ -269,13 +295,18 @@ def crear_propiedad(
 # =========================================================
 # EDITAR PROPIEDAD
 # =========================================================
-
 @app.put("/api/propiedades/{propiedad_id}")
 def editar_propiedad(
+    request: Request,
     propiedad_id: int,
     propiedad: PropiedadCreate,
     db: Session = Depends(get_db)
 ):
+    acceso = verificar_admin(request)
+
+    if acceso:
+        return acceso
+
     existente = db.query(Propiedad).filter(
         Propiedad.id == propiedad_id
     ).first()
@@ -284,16 +315,30 @@ def editar_propiedad(
         return {"error": "Propiedad no encontrada"}
 
     existente.tipo = propiedad.tipo
-    existente.titulo = propiedad.titulo
-    existente.descripcion = propiedad.descripcion
-    existente.precio = propiedad.precio
-    existente.ubicacion = propiedad.ubicacion
-    existente.imagen_url = propiedad.imagen_url
+@app.put("/api/propiedades/{propiedad_id}/estado")
+def cambiar_estado_propiedad(
+    request: Request,
+    propiedad_id: int,
+    db: Session = Depends(get_db)
+):
+    acceso = verificar_admin(request)
+
+    if acceso:
+        return acceso
+
+    propiedad = db.query(Propiedad).filter(
+        Propiedad.id == propiedad_id
+    ).first()
+
+    if not propiedad:
+        return {"error": "Propiedad no encontrada"}
+
+    propiedad.activo = not propiedad.activo
 
     db.commit()
-    db.refresh(existente)
+    db.refresh(propiedad)
 
-    return existente
+    return propiedad
 
 
 # =========================================================
@@ -326,9 +371,15 @@ def cambiar_estado_propiedad(
 
 @app.delete("/api/propiedades/{propiedad_id}")
 def eliminar_propiedad(
+    request: Request,
     propiedad_id: int,
     db: Session = Depends(get_db)
 ):
+    acceso = verificar_admin(request)
+
+    if acceso:
+        return acceso
+
     propiedad = db.query(Propiedad).filter(
         Propiedad.id == propiedad_id
     ).first()
@@ -343,8 +394,6 @@ def eliminar_propiedad(
         "mensaje": "Propiedad eliminada correctamente",
         "id": propiedad_id
     }
-
-
 
 # ============================================================
 
